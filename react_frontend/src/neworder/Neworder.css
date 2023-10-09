@@ -1,0 +1,90 @@
+ente.elements {
+  margin-top: 10%;
+  text-align: center;
+}
+.nome_levantamento {
+  position: relative;
+  text-align: center;
+  width: 60%;
+  margin-top: 2%;
+  padding: 10px;
+  border: 1px solid #b2b2b2;
+
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+
+  -webkit-box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+  box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+
+  -webkit-transition: all 0.2s linear;
+  transition: all 0.2s linear;
+}
+.nome::placeholder {
+  text-align: center;
+}
+.file {
+  margin-top: 2%;
+}
+.sendto_levantamento {
+  position: relative;
+  text-align: center;
+  width: 60%;
+  margin-top: 2%;
+  padding: 10px;
+  border: 1px solid #b2b2b2;
+  align-items: center;
+
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+
+  -webkit-box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+  box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+
+  -webkit-transition: all 0.2s linear;
+  transition: all 0.2s linear;
+}
+.sendto::placeholder {
+  text-align: center;
+}
+.title_levantamento {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+.coment_levantamento {
+  position: relative;
+  text-align: center;
+  width: 60%;
+  height: 80px;
+  margin-top: 1%;
+  padding: 10px;
+  border: 1px solid #b2b2b2;
+  text-align: center;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+
+  -webkit-box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+  box-shadow: 0px 1px 4px 0px rgba(168, 168, 168, 0.6) inset;
+
+  -webkit-transition: all 0.2s linear;
+  transition: all 0.2s linear;
+}
+.sendorder {
+  position: relative;
+  margin-top: 2%;
+  margin-left: 40%;
+  width: 20% !important;
+  cursor: pointer;
+  background: #17882c;
+  padding: 8px 5px;
+  color: #fff;
+  font-size: 20px;
+  border: 1px solid #fff;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 1px #333;
+
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+
+  transition: all 0.2s linear;
+}

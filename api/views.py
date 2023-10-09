@@ -4,9 +4,9 @@ from rest_framework import generics, status
 from .serializers import (
     UserSerializer,
     OrdersSerializer,
-    UserFilesSerializer,
+    UploadedFileSerializer,
 )
-from .models import Orders, CustomUser, UserFiles
+from .models import Orders, CustomUser, UploadedFile
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -58,7 +58,6 @@ def send_registration_email(request):
     except Exception as e:
         return JsonResponse({'message': f'Error sending email: {str(e)}'}, status=500)
 
-# My project views
 @csrf_exempt 
 @api_view(['POST'])
 def create_user(request):    
@@ -93,12 +92,73 @@ def create_user(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @api_view(['POST'])
+def login(request):
+    user = get_object_or_404(CustomUser, email=request.data['email'])
+    if not user.check_password(request.data['password']):
+        return Response("Senha está errada", status=status.HTTP_404_NOT_FOUND)
+    try:
+        token = Token.objects.get_or_create(user=user)
+    except:
+        token = user.auth_token
+    serializer = UserSerializer(user)
+    return Response({'token': token[0].key, 'user': serializer.data})
+
+@api_view(['GET'])
+def get_authenticated_user(request):
+    user = request.user  # The authenticated user
+    # You can serialize and return user data as needed
+    data = {
+        'user_id': user.id,
+        'username': user.username,
+        'email': user.email,
+        # Add other fields as needed
+    }
+    return Response(data)
+
+@api_view(['GET'])
+def base_operators(request):
+    # Retrieve the list of base operators from the CustomUser table
+    operators = CustomUser.objects.filter(base_operator=True)
+    # Serialize the operators' data as needed
+    serialized_operators = [
+        {
+            'id': operator.id,
+            'name': operator.name,
+            # Add other fields as needed
+        }
+        for operator in operators
+    ]
+    return Response(serialized_operators)
+
+@api_view(['POST'])
 def create_order(request):
-    serializer = OrdersSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Create a list to store the UploadedFile instances
+    file_pks = []
+    # Create a list to store the UploadedFile instances
+    uploaded_files = []
+
+    data = request.data.copy()  
+    # Get the list of uploaded files
+    files = request.FILES.getlist('files')
+    for file in files:
+        uploaded_file = UploadedFile(file=file)
+        uploaded_file.save()        
+        file_pks.append(uploaded_file.pk)
+    del data['files']
+    # Create the Orders instance and associate the uploaded files
+    orders_serializer = OrdersSerializer(data=data)
+    if orders_serializer.is_valid():
+        orders = orders_serializer.save()
+        for file_pk in file_pks:
+            try:
+                uploaded_file = UploadedFile.objects.get(pk=file_pk)
+                uploaded_files.append(uploaded_file)
+                orders.files.add(uploaded_file)
+            except UploadedFile.DoesNotExist:
+                # Handle the case where the uploaded file with the given pk doesn't exist
+                pass
+        return Response(status=status.HTTP_201_CREATED)
+    return Response(orders_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrdersView(generics.ListCreateAPIView):
     queryset = Orders.objects.all()
@@ -108,6 +168,6 @@ class UsersView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
-class UserFilesView(generics.ListCreateAPIView):
-    queryset = UserFiles.objects.all()
-    serializer_class = UserFilesSerializer
+class UploadedFileView(generics.ListCreateAPIView):
+    queryset = UploadedFile.objects.all()
+    serializer_class = UploadedFileSerializer

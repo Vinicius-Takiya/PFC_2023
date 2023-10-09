@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Orders, UserFiles
+from .models import CustomUser, Orders, UploadedFile
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
 
@@ -12,17 +12,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class OrdersSerializer(serializers.ModelSerializer):
-    field_operator_name = serializers.ReadOnlyField(source='field_operator.name')
-    base_operator_name = serializers.ReadOnlyField(source='base_operator.name')
-
+    files = serializers.PrimaryKeyRelatedField(queryset=UploadedFile.objects.all(), many=True)
     class Meta:
         model = Orders
         fields = (
             "id",
-            "field_operator",
-            "field_operator_name",  # Include the field operator name
-            "base_operator",
-            "base_operator_name",  # Include the base operator name
+            "field_operator",  # Include the field operator name
+            "base_operator",  # Include the base operator name
             "datetime_of_sending",
             "files",
             "status",
@@ -31,20 +27,7 @@ class OrdersSerializer(serializers.ModelSerializer):
             "operator_comments",
         )
 
-
-class CreateOrderSerializer(serializers.ModelSerializer):
+class UploadedFileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Orders
-        fields = (
-            "field_operator",
-            "base_operator",
-            "files",
-            "order_name",
-            "field_comments",
-        )
-
-
-class UserFilesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserFiles
-        fields = ("id", "user", "file", "description", "uploaded_at")
+        model = UploadedFile
+        fields = ("id", "file", "uploaded_at")

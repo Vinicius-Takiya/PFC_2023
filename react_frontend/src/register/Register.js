@@ -87,6 +87,7 @@ function Neworder() {
 
       if (response.status === 201) {
         alert("User created successfully");
+        navigate("/");
       } else {
         alert("Error creating user");
       }

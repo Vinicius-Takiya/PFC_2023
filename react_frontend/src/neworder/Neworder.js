@@ -8,30 +8,30 @@ function Neworder() {
   const [orderName, setOrderName] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedBase, setSelectedBase] = useState("");
-  const [comments, setComments] = useState("");
+  const [field_comments, setComments] = useState("");
   const [baseOperators, setBaseOperators] = useState([]); // State for base operators
   const [fieldOperator, setFieldOperator] = useState(null); // State for field operator
+  const authToken = localStorage.getItem("authToken");
+  const email = localStorage.getItem("email");
+  const id = localStorage.getItem("id");
+  const name = localStorage.getItem("name");
 
   useEffect(() => {
-    // Fetch the currently authenticated user's information
-    fetch(`${backendUrl}/api/get_authenticated_user/`, {
-      credentials: "include", // Include credentials for authentication
+    setFieldOperator(id); // Set the field operator based on user info
+    // Fetch the list of base operators from your backend API
+    fetch(`${backendUrl}/api/base_operators/`, {
+      headers: {
+        Authorization: `Token ${authToken}`,
+      },
     })
       .then((response) => response.json())
       .then((data) => {
-        setFieldOperator(data.user_id); // Set the field operator based on user info
-      })
-      .catch((error) => {
-        console.error("Error fetching user info:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    // Fetch the list of base operators from your backend API
-    fetch(`${backendUrl}/api/base_operators/`)
-      .then((response) => response.json())
-      .then((data) => {
-        setBaseOperators(data); // Populate the state variable with fetched data
+        if (Array.isArray(data)) {
+          // Verify that data is an array
+          setBaseOperators(data); // Populate the state variable with fetched data
+        } else {
+          console.error("Data is not an array:", data);
+        }
       })
       .catch((error) => {
         console.error("Error fetching base operators:", error);
@@ -44,7 +44,7 @@ function Neworder() {
     const formData = new FormData();
     formData.append("order_name", orderName);
     formData.append("base_operator", selectedBase);
-    formData.append("comments", comments);
+    formData.append("field_comments", field_comments);
     formData.append("field_operator", fieldOperator); // Include the field operator (user ID)
 
     for (let i = 0; i < selectedFiles.length; i++) {
@@ -107,7 +107,7 @@ function Neworder() {
           type="text"
           placeholder="Comentários"
           rows="5"
-          value={comments}
+          value={field_comments}
           onChange={(e) => setComments(e.target.value)}
         />
       </div>

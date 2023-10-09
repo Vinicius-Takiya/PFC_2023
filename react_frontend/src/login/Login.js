@@ -7,7 +7,6 @@ import backendUrl from "../Config";
 
 function Login() {
   const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState(""); // Add state for password
   const [errorMessage, setErrorMessage] = useState(null);
@@ -27,8 +26,10 @@ function Login() {
     axios
       .post(`${backendUrl}/api/login`, { email: username, password })
       .then((response) => {
-        const { token } = response.data;
-        localStorage.setItem("authToken", token);
+        localStorage.setItem("authToken", response.data["token"]);
+        localStorage.setItem("email", response.data["user"]["email"]);
+        localStorage.setItem("id", response.data["user"]["id"]);
+        localStorage.setItem("name", response.data["user"]["name"]);
         navigate("/Homepage");
       })
       .catch((error) => {
@@ -44,7 +45,7 @@ function Login() {
       <div className="logo-container">
         <img src={eb} alt="Logo" className="logo" />
       </div>
-      <h3 class="titleLogin">Sistema de gerenciamento de dados</h3>
+      <h3 className="titleLogin">Sistema de gerenciamento de dados</h3>
       <div className="elements">
         <input
           className="username input"

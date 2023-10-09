@@ -9,12 +9,11 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError("You must provide an email address")
         
-        print('e')
         print(extra_fields)
         email = self.normalize_email(email)
         comments = extra_fields.pop('comments', '')
         user = self.model(email=email, **extra_fields)
-        print('f')
+        user.username = email
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -23,6 +22,12 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, password, **extra_fields)
+    
+    USERNAME_FIELD = 'email'
+
+    REQUIRED_FIELDS = []
+
+
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -41,31 +46,23 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
-    
-
 def user_file_upload_path(instance, filename):
     # Get the user's ID from the session
     user_id = instance.user.id
     # Construct the upload path: 'user_files/user_id/filename'
     return f'user_files/{user_id}/{filename}'
 
-class UserFiles(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    description = models.TextField(blank=True)
+class UploadedFile(models.Model):
+    file = models.FileField(upload_to='uploaded_files/')    
     uploaded_at = models.DateTimeField(auto_now_add=True) 
-
-    # Create a ManyToMany relationship with FileField
-    files = models.ManyToManyField('File')
-
-    def __str__(self):
-        return f"Files for User: {self.user.email}"
-
-class File(models.Model):
-    file = models.FileField(upload_to=user_file_upload_path)
+    # You can add other fields if needed, such as a description or uploader info
 
     def __str__(self):
         return self.file.name
 
+class OrdersFile(models.Model):
+    order = models.ForeignKey('Orders', on_delete=models.CASCADE)
+    file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
 
 class Orders(models.Model):
     STATUS_CHOICES = (
@@ -74,24 +71,12 @@ class Orders(models.Model):
         ("Aguardando Análise", "Aguardando Análise"),
     )
 
-    field_operator = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="field_orders",
-        limit_choices_to={"permissions": "Field Operator"},
-    )
-
-    base_operator = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="base_orders",
-        limit_choices_to={"permissions": "Base Operator"},
-    )
-
     datetime_of_sending = models.DateTimeField(auto_now_add=True)
-    files = models.ManyToManyField("UserFiles")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    files = models.ManyToManyField(UploadedFile, through=OrdersFile, related_name='orders')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Aguardando Análise")
     order_name = models.CharField(max_length=255)
+    field_operator = models.BigIntegerField()
+    base_operator = models.BigIntegerField()
     field_comments = models.TextField(blank=True)
     operator_comments = models.TextField(blank=True)
 

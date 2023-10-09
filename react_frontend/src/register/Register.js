@@ -48,41 +48,51 @@ function Neworder() {
   }
 
   async function handleClick(event) {
-    if (selectedBase === "") {
-      alert("Please select a base from the list.");
-      return;
+    event.preventDefault();
+
+    // Determine the permission level based on the selectedPermission
+    let isFieldOperator = false;
+    let isBaseOperator = false;
+    let isAdmin = false;
+
+    if (selectedPermission === "Operador de campo") {
+      isFieldOperator = true;
+    } else if (selectedPermission === "Operador de base") {
+      isBaseOperator = true;
+    } else if (selectedPermission === "Administrador") {
+      isAdmin = true;
     }
 
-    if (selectedPermission === "") {
-      alert("Please select a permission from the list.");
-      return;
-    }
-    const headers = {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrfToken, // Add the CSRF token from the JavaScript variable
+    // Create a user object based on the form data
+    const userData = {
+      name: name,
+      email: email,
+      militar_idt: idtMil,
+      password: password,
+      comments: comments,
+      is_field_operator: isFieldOperator,
+      is_base_operator: isBaseOperator,
+      is_admin: isAdmin,
     };
-    // Send the form data to the Django endpoint
+
+    // Send the user data to the Django endpoint for user creation
     try {
-      const response = await fetch(`${backendUrl}/api/send_email/`, {
+      const response = await fetch(`${backendUrl}/api/create_user/`, {
         method: "POST",
-        headers: headers,
-        body: JSON.stringify({
-          name: name,
-          idt_mil: idtMil,
-          email: email,
-          password: password,
-          comments: comments,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
       });
 
-      if (response.status === 200) {
-        alert("Email sent successfully");
+      if (response.status === 201) {
+        alert("User created successfully");
       } else {
-        alert("Error sending email");
+        alert("Error creating user");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error sending email");
+      alert("Error creating user");
     }
   }
 
@@ -123,20 +133,6 @@ function Neworder() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <p></p>
-        <input
-          className="nome"
-          list="bases"
-          placeholder="CGEO responsável"
-          onChange={(e) => setSelectedBase(e.target.value)}
-        />
-        <p></p>
-        <datalist id="bases">
-          <option value="1º CGEO" />
-          <option value="2º CGEO" />
-          <option value="3º CGEO" />
-          <option value="4º CGEO" />
-          <option value="5º CGEO" />
-        </datalist>
         <input
           className="nome"
           list="permissoes"

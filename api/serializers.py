@@ -1,14 +1,14 @@
 from rest_framework import serializers
-from .models import Users, Orders, UserFiles
+from .models import CustomUser, Orders, UserFiles
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
 
 
 # PFC Serializers
-class UsersSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Users
-        fields = ("id", "name", "email", "militar_idt", "password", "permissions")
+        model = CustomUser
+        fields = ('id', 'email', 'name', 'militar_idt', 'field_operator', 'base_operator', 'admin', 'approved')
 
 
 class OrdersSerializer(serializers.ModelSerializer):

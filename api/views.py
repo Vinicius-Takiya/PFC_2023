@@ -203,6 +203,16 @@ def get_orders(request, id):
         return Response(orders_serializer.data)
     else:
         return Response({'detail': 'Operator ID not provided in headers'}, status=400)
+    
+@api_view(['DELETE'])
+@csrf_exempt
+def delete_order(request, order_id):
+    try:
+        order = Orders.objects.get(id=order_id)
+        order.delete()
+        return JsonResponse({"message": "Order deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except Orders.DoesNotExist:
+        return JsonResponse({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 def get_file(request, id):

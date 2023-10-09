@@ -138,13 +138,14 @@ function Neworder() {
       });
 
       if (response.status === 201) {
-        alert("Order created successfully");
+        alert("Ordem criada com sucesso");
+        navigate("/Homepage");
       } else {
-        alert("Error creating order");
+        alert("Erro ao criar ordem");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error creating order");
+      alert("Erro ao criar ordem");
     }
   } /*
   async function downloadFile(fileId) {
@@ -170,7 +171,9 @@ function Neworder() {
 
   return (
     <div>
-      <h2 className="title_levantamento">Novo levantamento</h2>
+      <h2 className="title_levantamento">
+        {order_number ? "Levantamento" : "Novo levantamento"}
+      </h2>
       <div className="elements">
         <input
           className="nome_levantamento"
@@ -224,16 +227,16 @@ function Neworder() {
           value={field_comments}
           onChange={(e) => setComments(e.target.value)}
         />
-        {base_op === "true" && ( // Check if field_op is "True"
-          <textarea
-            className="coment_levantamento"
-            type="text"
-            placeholder="Feedback"
-            value={operator_comments}
-            onChange={(e) => setFeedback(e.target.value)}
-            rows="5"
-          />
-        )}
+
+        <textarea
+          className="coment_levantamento"
+          type="text"
+          placeholder="Feedback"
+          value={operator_comments}
+          onChange={(e) => setFeedback(e.target.value)}
+          disabled={base_op !== "true"}
+          rows="5"
+        />
       </div>
       {base_op === "true" && (
         <div style={{ flexDirection: "row" }}>

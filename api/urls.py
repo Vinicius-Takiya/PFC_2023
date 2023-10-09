@@ -1,5 +1,5 @@
 from django.urls import path, include, re_path
-from .views import get_csrf_token, send_registration_email, create_user, login, base_operators, operators,create_order, get_orders, get_orders_by_order_id, get_file, update_order_status,delete_order, UsersView, OrdersView, UploadedFileView
+from .views import get_csrf_token, send_registration_email, create_user, login, base_operators, operators,create_order, get_orders, get_orders_by_order_id, get_file, update_order_status,delete_order, download_file, UsersView, OrdersView, UploadedFileView
 
 urlpatterns = [
   re_path('send_email', send_registration_email),
@@ -18,4 +18,5 @@ urlpatterns = [
   path('userfiles', UploadedFileView.as_view()),
   path('orders', OrdersView.as_view()),
   path('files', UploadedFileView.as_view()),
+  path('download/<int:file_id>/', download_file),
 ]

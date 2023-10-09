@@ -57,6 +57,7 @@ function Neworder() {
           setOrderName(data[0].order_name);
           setSelectedBase(data[0].base_operator);
           setComments(data[0].field_comments);
+          setFeedback(data[0].operator_comments);
         })
         .catch((error) => {
           console.error("Error fetching order data:", error);
@@ -147,7 +148,7 @@ function Neworder() {
       console.error("Error:", error);
       alert("Erro ao criar ordem");
     }
-  } /*
+  }
   async function downloadFile(fileId) {
     try {
       // Fetch file details based on the fileId
@@ -167,7 +168,7 @@ function Neworder() {
       console.error("Error:", error);
       alert("Error downloading file");
     }
-  }*/
+  }
 
   return (
     <div>
@@ -197,9 +198,9 @@ function Neworder() {
           orderData.files.length > 0 &&
           orderData.files.map((fileId) => (
             <div key={fileId}>
-              <a href={`${backendUrl}/api/get_file/${fileId}/`} download>
+              <a href={`${backendUrl}/api/download/${fileId}/`} download>
                 {" "}
-                Download
+                Download {fileId}
               </a>
             </div>
           ))}

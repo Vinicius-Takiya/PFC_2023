@@ -91,8 +91,8 @@ function LevantamentosTable() {
           <tr>
             <th>ID</th>
             <th>Levantamento</th>
-            <th>Operador de base</th>
             <th>Operador de campo</th>
+            <th>Operador de base</th>
             <th>Data/Hora</th>
             <th>Status</th>
             <th>Visualizar ordem</th>

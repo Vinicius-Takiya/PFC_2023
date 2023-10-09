@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.authtoken.models import Token
 from django.core.mail import send_mail
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 
@@ -30,20 +30,24 @@ def get_csrf_token(request):
 @csrf_exempt
 @api_view(['POST'])
 def send_registration_email(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
     name = request.data['name']
-    idt_mil = request.data['idt_mil']
-    password = request.data['password']
+    militar_idt = request.data['militar_idt']
     email = request.data['email']
+    is_field_operator = request.data['field_operator']
+    is_base_operator = request.data['base_operator']
+    is_admin = request.data['admin']
     comments = request.data['comments']
     # Create the email message
     message = f'''
     Nome Completo: {name}
-    Nº Idt Mil: {idt_mil}
+    Nº Idt Mil: {militar_idt}
     E-mail: {email}
+    Operador de campo: {is_field_operator}
+    Operador de base: {is_base_operator}
+    Administrador: {is_admin}
     Comentários: {comments}
+
+    Para autenticar esse usuário, clique no link: http://localhost:3000/login
     '''
 
     # Send the email
@@ -224,7 +228,13 @@ def get_file(request, id):
         return Response(file_serializer.data[0]['file'])
     else:
         return Response({'detail': 'Operator ID not provided in headers'}, status=400)
-    
+  
+@api_view(['GET'])  
+def download_file(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, pk=file_id)
+    response = FileResponse(uploaded_file.file, as_attachment=True)
+    return response
+
 @api_view(['GET'])
 def get_orders_by_order_id(request, order_id):
     if order_id is not None:

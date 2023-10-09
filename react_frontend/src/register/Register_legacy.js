@@ -70,13 +70,13 @@ function Neworder() {
           name: name,
           idt_mil: idtMil,
           email: email,
-          password: password,
           comments: comments,
         }),
       });
 
       if (response.status === 200) {
-        alert("Email sent successfully");
+        alert("Email enviado com sucesso");
+        navigate("/");
       } else {
         alert("Error sending email");
       }

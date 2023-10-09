@@ -8,7 +8,7 @@ function Neworder() {
   const [selectedBase, setSelectedBase] = useState("");
   const [selectedPermission, setSelectedPermission] = useState("");
   const [name, setName] = useState("");
-  const [idtMil, setIdtMil] = useState("");
+  const [militar_idt, setIdtMil] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [comments, setComments] = useState("");
@@ -67,7 +67,7 @@ function Neworder() {
     const userData = {
       name: name,
       email: email,
-      militar_idt: idtMil,
+      militar_idt: militar_idt,
       password: password,
       comments: comments,
       is_field_operator: isFieldOperator,
@@ -95,6 +95,34 @@ function Neworder() {
       console.error("Error:", error);
       alert("Error creating user");
     }
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    try {
+      const response = await fetch(`${backendUrl}/api/send_email/`, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({
+          name: name,
+          militar_idt: militar_idt,
+          email: email,
+          comments: comments,
+          field_operator: isFieldOperator,
+          base_operator: isBaseOperator,
+          admin: isAdmin,
+        }),
+      });
+
+      if (response.status === 200) {
+        alert("Email enviado com sucesso");
+        navigate("/");
+      } else {
+        alert("Erro ao enviar email");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Erro ao enviar email");
+    }
   }
 
   return (
@@ -113,7 +141,7 @@ function Neworder() {
           className="nome idt-mil-input"
           type="text"
           placeholder="Nº Idt Mil"
-          value={idtMil}
+          value={militar_idt}
           onChange={(e) => setIdtMil(e.target.value)}
         />
         <p></p>
@@ -151,6 +179,8 @@ function Neworder() {
           type="text"
           placeholder="Comentários"
           rows="5"
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
         />
       </div>
       <button type="button" onClick={handleClick} className="sendorder">

@@ -5,21 +5,44 @@ import axios from "axios"; // Import Axios
 import backendUrl from "../Config";
 
 function LevantamentosTable() {
-  const [data, setData] = useState([]); // Initialize state for data
+  const [reversedData, setData] = useState([]);
+  const [operators, setOperators] = useState([]);
+  const authToken = localStorage.getItem("authToken");
+  const id = localStorage.getItem("id");
 
   useEffect(() => {
     // Make an HTTP GET request to your Django backend API endpoint
-    axios
-      .get(`${backendUrl}/api/orders`) // Replace with your actual API endpoint
-      .then((response) => {
-        const reversedData = response.data.reverse(); // Reverse the data array to get the latest orders
-        setData(reversedData); // Update the state with the reversed data
+    fetch(`${backendUrl}/api/get_orders/${id}/`, {})
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Verify that data is an array
+          setData(data.reverse()); // Populate the state variable with fetched data
+        } else {
+          console.error("Data is not an array:", data);
+        }
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching base operators:", error);
+      });
+    fetch(`${backendUrl}/api/operators/`, {})
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Verify that data is an array
+          setOperators(data); // Populate the state variable with fetched data
+        } else {
+          console.error("Data is not an array:", data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching base operators:", error);
       });
   }, []); // Empty dependency array to fetch data only once on component mount
-
+  const operatorNameMap = {};
+  operators.forEach((operator) => {
+    operatorNameMap[operator.id] = operator.name;
+  });
   return (
     <div
       className="table-container"
@@ -38,16 +61,16 @@ function LevantamentosTable() {
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
+          {reversedData.map((row) => (
             <tr key={row.id}>
               <td>{row.id}</td>
               <td>{row.order_name}</td>
-              <td>{row.field_operator__name}</td>
-              <td>{row.base_operator__name}</td>
+              <td>{operatorNameMap[row.field_operator]}</td>
+              <td>{operatorNameMap[row.base_operator]}</td>
               <td>{row.datetime_of_sending}</td>
               <td>{row.status}</td>
               <td className="text-center">
-                <Link to={`/neworder/${row.id}`}>
+                <Link to={`/order/${row.id}`}>
                   <button type="button">Visualizar</button>
                 </Link>
               </td>

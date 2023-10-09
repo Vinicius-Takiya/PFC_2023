@@ -30,6 +30,14 @@ function Login() {
         localStorage.setItem("email", response.data["user"]["email"]);
         localStorage.setItem("id", response.data["user"]["id"]);
         localStorage.setItem("name", response.data["user"]["name"]);
+        localStorage.setItem(
+          "field_operator",
+          response.data["user"]["field_operator"]
+        );
+        localStorage.setItem(
+          "base_operator",
+          response.data["user"]["base_operator"]
+        );
         navigate("/Homepage");
       })
       .catch((error) => {

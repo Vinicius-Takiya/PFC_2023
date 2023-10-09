@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Neworder.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import backendUrl from "../Config";
 
 function Neworder() {
@@ -9,12 +9,17 @@ function Neworder() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedBase, setSelectedBase] = useState("");
   const [field_comments, setComments] = useState("");
+  const [operator_comments, setFeedback] = useState("");
   const [baseOperators, setBaseOperators] = useState([]); // State for base operators
   const [fieldOperator, setFieldOperator] = useState(null); // State for field operator
   const authToken = localStorage.getItem("authToken");
   const email = localStorage.getItem("email");
   const id = localStorage.getItem("id");
   const name = localStorage.getItem("name");
+  const field_op = localStorage.getItem("field_operator");
+  const base_op = localStorage.getItem("base_operator");
+  const { order_number } = useParams();
+  const [orderData, setOrderData] = useState([]);
 
   useEffect(() => {
     setFieldOperator(id); // Set the field operator based on user info
@@ -36,8 +41,83 @@ function Neworder() {
       .catch((error) => {
         console.error("Error fetching base operators:", error);
       });
+    if (order_number) {
+      fetch(`${backendUrl}/api/get_orders_by_order_id/${order_number}/`, {})
+        .then((response) => {
+          if (response.status === 200) {
+            return response.json();
+          } else {
+            throw new Error("Order not found");
+          }
+        })
+        .then((data) => {
+          // Set the order data in state
+          setOrderData(data[0]);
+          // Pre-fill the form fields with the order data
+          setOrderName(data[0].order_name);
+          setSelectedBase(data[0].base_operator);
+          setComments(data[0].field_comments);
+        })
+        .catch((error) => {
+          console.error("Error fetching order data:", error);
+        });
+    }
   }, []);
+  async function handleApprove() {
+    try {
+      const response = await fetch(
+        `${backendUrl}/api/update_order_status/${orderData.id}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: "Aprovado",
+            operator_comments: operator_comments,
+          }),
+        }
+      );
 
+      if (response.status === 200) {
+        alert("Ordem aprovada com sucesso");
+        navigate("/Homepage");
+      } else {
+        alert("Erro ao aprovar ordem");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Erro ao aprovar ordem");
+    }
+  }
+
+  async function handleReprove() {
+    try {
+      const response = await fetch(
+        `${backendUrl}/api/update_order_status/${orderData.id}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: "Reprovado",
+            operator_comments: operator_comments,
+          }),
+        }
+      );
+
+      if (response.status === 200) {
+        alert("Ordem Reprovada");
+        navigate("/Homepage");
+      } else {
+        alert("Erro ao reprovar ordem");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Erro ao reprovar ordem");
+    }
+  }
   async function handleClick(event) {
     event.preventDefault();
 
@@ -66,7 +146,27 @@ function Neworder() {
       console.error("Error:", error);
       alert("Error creating order");
     }
-  }
+  } /*
+  async function downloadFile(fileId) {
+    try {
+      // Fetch file details based on the fileId
+      fetch(`${backendUrl}/api/get_file/${fileId}/`)
+        .then((response) => {
+          if (response.status === 200) {
+            return response.json();
+          } else {
+            throw new Error("Order not found");
+          }
+        })
+        .then((data) => {
+          var downloadUrl = `${backendUrl}${data[0].file}`;
+          return downloadUrl;
+        });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error downloading file");
+    }
+  }*/
 
   return (
     <div>
@@ -80,12 +180,26 @@ function Neworder() {
           onChange={(e) => setOrderName(e.target.value)}
         />
         <p></p>
-        <input
-          className="file"
-          type="file"
-          onChange={(e) => setSelectedFiles(e.target.files)}
-          multiple
-        />
+        {field_op === "true" && ( // Check if field_op is "True"
+          <input
+            className="file"
+            type="file"
+            onChange={(e) => setSelectedFiles(e.target.files)}
+            multiple
+          />
+        )}
+        <p></p>
+        {base_op === "true" &&
+          orderData.files &&
+          orderData.files.length > 0 &&
+          orderData.files.map((fileId) => (
+            <div key={fileId}>
+              <a href={`${backendUrl}/api/get_file/${fileId}/`} download>
+                {" "}
+                Download
+              </a>
+            </div>
+          ))}
         <p></p>
         <input
           className="sendto_levantamento"
@@ -110,10 +224,33 @@ function Neworder() {
           value={field_comments}
           onChange={(e) => setComments(e.target.value)}
         />
+        {base_op === "true" && ( // Check if field_op is "True"
+          <textarea
+            className="coment_levantamento"
+            type="text"
+            placeholder="Feedback"
+            value={operator_comments}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows="5"
+          />
+        )}
       </div>
-      <button type="button" onClick={handleClick} className="sendorder">
-        Enviar
-      </button>
+      {base_op === "true" && (
+        <div style={{ flexDirection: "row" }}>
+          <button onClick={handleReprove} className="approve-reprove reprove">
+            Reprovar
+          </button>
+          <button onClick={handleApprove} className="approve-reprove approve">
+            Aprovar
+          </button>
+        </div>
+      )}
+      {field_op === "true" && ( // Check if field_op is "True"
+        <button type="button" onClick={handleClick} className="sendorder">
+          Enviar
+        </button>
+      )}
+
       <p></p>
     </div>
   );

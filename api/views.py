@@ -7,6 +7,7 @@ from .serializers import (
     UploadedFileSerializer,
 )
 from .models import Orders, CustomUser, UploadedFile
+from django.db import models
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -103,22 +104,48 @@ def login(request):
     serializer = UserSerializer(user)
     return Response({'token': token[0].key, 'user': serializer.data})
 
-@api_view(['GET'])
-def get_authenticated_user(request):
-    user = request.user  # The authenticated user
-    # You can serialize and return user data as needed
-    data = {
-        'user_id': user.id,
-        'username': user.username,
-        'email': user.email,
-        # Add other fields as needed
-    }
-    return Response(data)
+@api_view(['PUT'])
+def update_order_status(request, order_id):
+    try:
+        order = Orders.objects.get(id=order_id)
+    except Orders.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        # Check if the request contains a 'status' field in the JSON data
+        if 'status' in request.data:
+            new_status = request.data['status']
+            operator_comments = request.data['operator_comments']
+            # Check if the new_status is valid (e.g., 'Aprovado' or 'Reprovado')
+            if new_status in ['Aprovado', 'Reprovado']:
+                order.status = new_status
+                order.operator_comments = operator_comments
+                order.save()
+                return Response(status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'Status field is missing in the request data'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def base_operators(request):
     # Retrieve the list of base operators from the CustomUser table
     operators = CustomUser.objects.filter(base_operator=True)
+    # Serialize the operators' data as needed
+    serialized_operators = [
+        {
+            'id': operator.id,
+            'name': operator.name,
+            # Add other fields as needed
+        }
+        for operator in operators
+    ]
+    return Response(serialized_operators)
+
+@api_view(['GET'])
+def operators(request):
+    # Retrieve the list of base operators from the CustomUser table
+    operators = CustomUser.objects.all()
     # Serialize the operators' data as needed
     serialized_operators = [
         {
@@ -159,6 +186,47 @@ def create_order(request):
                 pass
         return Response(status=status.HTTP_201_CREATED)
     return Response(orders_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def get_orders(request, id):
+    if id is not None:
+        # Query for orders where either base_operator or field_operator matches the provided operator_id
+        orders =  Orders.objects.filter(
+                base_operator=id
+            ) | Orders.objects.filter(
+                field_operator=id
+            )
+
+        # Serialize the orders' data
+        orders_serializer = OrdersSerializer(orders, many=True)
+
+        return Response(orders_serializer.data)
+    else:
+        return Response({'detail': 'Operator ID not provided in headers'}, status=400)
+
+@api_view(['GET'])
+def get_file(request, id):
+    if id is not None:
+        file =  UploadedFile.objects.filter(id=id)
+
+        file_serializer = UploadedFileSerializer(file, many=True)
+
+        return Response(file_serializer.data[0]['file'])
+    else:
+        return Response({'detail': 'Operator ID not provided in headers'}, status=400)
+    
+@api_view(['GET'])
+def get_orders_by_order_id(request, order_id):
+    if order_id is not None:
+        # Query for orders where either base_operator or field_operator matches the provided operator_id
+        orders =  Orders.objects.filter(id=order_id)
+
+        # Serialize the orders' data
+        orders_serializer = OrdersSerializer(orders, many=True)
+
+        return Response(orders_serializer.data)
+    else:
+        return Response({'detail': 'Order ID not provided in headers'}, status=400)
 
 class OrdersView(generics.ListCreateAPIView):
     queryset = Orders.objects.all()
